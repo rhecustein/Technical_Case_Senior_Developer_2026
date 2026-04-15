@@ -1,117 +1,22 @@
-version: '3.8'
-
 services:
-  odoo-db:
-    image: postgres:15
-    container_name: odoo_db
-    environment:
-      POSTGRES_USER: ${ODOO_DB_USER:-odoo}
-      POSTGRES_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
-      POSTGRES_DB: ${ODOO_DB_NAME:-odoo}
-    volumes:
-      - odoo_db_data:/var/lib/postgresql/data
-    networks:
-      - warehouse_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${ODOO_DB_USER:-odoo}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  odoo:
+  web:
     image: odoo:17.0
-    container_name: odoo_app
     depends_on:
-      odoo-db:
-        condition: service_healthy
+      - db
     ports:
       - "8069:8069"
-    environment:
-      HOST: odoo-db
-      USER: ${ODOO_DB_USER:-odoo}
-      PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
-    volumes:
-      - odoo_data:/var/lib/odoo
-      - ./odoo/config:/etc/odoo
-      - ./odoo/addons:/mnt/extra-addons
-    networks:
-      - warehouse_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
 
-  app-db:
+  db:
     image: postgres:15
-    container_name: app_db
     environment:
-      POSTGRES_USER: ${APP_DB_USER:-warehouse}
-      POSTGRES_PASSWORD: ${APP_DB_PASSWORD:-warehouse}
-      POSTGRES_DB: ${APP_DB_NAME:-warehouse_system}
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
     ports:
-      - "5434:5432"
+      - "5433:5432"
     volumes:
-      - app_db_data:/var/lib/postgresql/data
-    networks:
-      - warehouse_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${APP_DB_USER:-warehouse}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: warehouse_backend
-    depends_on:
-      app-db:
-        condition: service_healthy
-      odoo:
-        condition: service_started
-    ports:
-      - "${BACKEND_PORT:-3001}:3001"
-    environment:
-      NODE_ENV: production
-      APP_DB_HOST: app-db
-      APP_DB_PORT: ${APP_DB_PORT:-5432}
-      APP_DB_USER: ${APP_DB_USER:-warehouse}
-      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-warehouse}
-      APP_DB_NAME: ${APP_DB_NAME:-warehouse_system}
-      ODOO_URL: ${ODOO_URL:-http://odoo:8069}
-      ODOO_DATABASE: ${ODOO_DATABASE:-odoo}
-      ODOO_USERNAME: ${ODOO_USERNAME:-admin}
-      ODOO_PASSWORD: ${ODOO_PASSWORD:-admin}
-      JWT_SECRET: ${JWT_SECRET:-your-secret-key}
-      PORT: 3001
-    networks:
-      - warehouse_network
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
-        NEXT_PUBLIC_ODOO_URL: ${NEXT_PUBLIC_ODOO_URL:-http://localhost:8069}
-    container_name: warehouse_frontend
-    depends_on:
-      - backend
-    ports:
-      - "3000:3000"
-    networks:
-      - warehouse_network
-    restart: unless-stopped
+      - db_data:/var/lib/postgresql/data
 
 volumes:
-  odoo_db_data:
-  odoo_data:
-  app_db_data:
-
-networks:
-  warehouse_network:
-    driver: bridge
+  db_data:

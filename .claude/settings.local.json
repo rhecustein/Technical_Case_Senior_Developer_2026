@@ -48,7 +48,11 @@
       "Bash(docker system:*)",
       "Bash(npm test:*)",
       "Bash(docker-compose build:*)",
-      "Bash(docker build:*)"
+      "Bash(docker build:*)",
+      "Bash(ls C:/Dev/warehouse-system-multi-power/frontend/.env*)",
+      "Bash(gh api *)",
+      "WebFetch(domain:gist.github.com)",
+      "Bash(ls *)"
     ]
   }
 }
