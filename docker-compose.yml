@@ -4,10 +4,14 @@ services:
   odoo-db:
     image: postgres:15
     container_name: odoo_db
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${ODOO_DB_USER:-odoo}
       POSTGRES_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       POSTGRES_DB: ${ODOO_DB_NAME:-odoo}
+    ports:
+      - "5433:5432"
     volumes:
       - odoo_db_data:/var/lib/postgresql/data
     networks:
@@ -26,6 +30,8 @@ services:
         condition: service_healthy
     ports:
       - "8069:8069"
+    env_file:
+      - .env
     environment:
       HOST: odoo-db
       USER: ${ODOO_DB_USER:-odoo}
@@ -37,15 +43,16 @@ services:
     networks:
       - warehouse_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8069"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
 
   app-db:
     image: postgres:15
     container_name: app_db
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${APP_DB_USER:-warehouse}
       POSTGRES_PASSWORD: ${APP_DB_PASSWORD:-warehouse}
@@ -71,9 +78,11 @@ services:
       app-db:
         condition: service_healthy
       odoo:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "${BACKEND_PORT:-3001}:3001"
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       APP_DB_HOST: app-db
@@ -99,6 +108,8 @@ services:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
         NEXT_PUBLIC_ODOO_URL: ${NEXT_PUBLIC_ODOO_URL:-http://localhost:8069}
     container_name: warehouse_frontend
+    env_file:
+      - .env
     depends_on:
       - backend
     ports:
