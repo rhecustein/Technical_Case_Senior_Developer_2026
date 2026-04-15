@@ -2,6 +2,8 @@ import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'ax
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
 
+export const SYNC_TIMEOUT = 120000; // 2 minutes for sync operations
+
 function createAxiosInstance(): AxiosInstance {
   const instance = axios.create({
     baseURL: BASE_URL,

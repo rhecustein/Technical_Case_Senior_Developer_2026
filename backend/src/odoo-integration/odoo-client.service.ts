@@ -45,7 +45,7 @@ export class OdooClientService implements OnModuleInit {
 
     this.http = axios.create({
       baseURL: this.config.url,
-      timeout: 30000,
+      timeout: 120000,
       headers: {
         'Content-Type': 'application/json',
         ...(this.config.apiKey ? { 'X-API-Key': this.config.apiKey } : {}),
