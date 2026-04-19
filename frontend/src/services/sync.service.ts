@@ -11,7 +11,7 @@ function recordSyncTime() {
 
 export const syncService = {
   async pullFromOdoo(): Promise<ApiResponse<SyncResult>> {
-    const response = await apiClient.post<ApiResponse<SyncResult>>('/sync/pull', null, { timeout: SYNC_TIMEOUT });
+    const response = await apiClient.post<ApiResponse<SyncResult>>('/sync/pull', undefined, { timeout: SYNC_TIMEOUT });
     recordSyncTime();
     const r = response.data.data;
     pushNotification({
@@ -23,7 +23,7 @@ export const syncService = {
   },
 
   async pushToOdoo(): Promise<ApiResponse<SyncResult>> {
-    const response = await apiClient.post<ApiResponse<SyncResult>>('/sync/push', null, { timeout: SYNC_TIMEOUT });
+    const response = await apiClient.post<ApiResponse<SyncResult>>('/sync/push', undefined, { timeout: SYNC_TIMEOUT });
     recordSyncTime();
     const r = response.data.data;
     pushNotification({
